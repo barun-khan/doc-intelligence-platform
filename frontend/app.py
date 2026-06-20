@@ -9,6 +9,7 @@ from backend.services.ingestion import parse_pdf
 from backend.utils.chunker import chunk_text
 from backend.services.retrieval import store_chunks, search
 from backend.services.llm import generate_answer
+from backend.services.audit import log_interaction
 
 
 # ---------- Page setup ----------
@@ -47,6 +48,7 @@ if question:
     with st.spinner("Searching and generating answer..."):
         relevant_chunks = search(question)
         answer = generate_answer(question, relevant_chunks)
+        log_interaction(question, answer, relevant_chunks)
 
     # Show the answer in a highlighted box
     st.subheader("Answer")

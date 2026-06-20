@@ -22,7 +22,7 @@ def store_chunks(chunks: list[str]) -> int:
     )
     return len(chunks)
 
-def search(question: str, top_k: int = 5) -> list[str]:
+def search(question: str, top_k: int = 10) -> list[str]:
     """Find the chunks whose meaning is closest to the question"""
     question_vector = embed_text(question)
     results = _collection.query(query_embeddings=[question_vector], n_results=top_k,)
