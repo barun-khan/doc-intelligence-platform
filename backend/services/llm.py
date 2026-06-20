@@ -1,7 +1,7 @@
 import anthropic
 from backend.utils.config import config
 
-# Create one Claude client, using the API key from .env
+# Create one Claude client, wrapped so every call is traced in LangSmith
 _client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
 
 
