@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import streamlit as st
 from backend.services.ingestion import parse_pdf
 from backend.utils.chunker import chunk_text
-from backend.services.retrieval import store_chunks, search
+from backend.services.retrieval import store_chunks, search, clear_store
 from backend.services.llm import generate_answer
 from backend.services.audit import log_interaction
 
@@ -28,17 +28,31 @@ with st.sidebar:
     if uploaded_file is not None:
         if st.button("Process document"):
             with st.spinner("Reading, chunking, and storing..."):
-                # Save the uploaded file temporarily
                 temp_path = f"/tmp/{uploaded_file.name}"
                 with open(temp_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
 
-                # Reuse your existing pipeline
+                clear_store()
                 text = parse_pdf(temp_path)
                 chunks = chunk_text(text)
                 count = store_chunks(chunks)
 
+            st.session_state["current_doc"] = uploaded_file.name
             st.success(f"Stored {count} chunks from {uploaded_file.name}")
+
+    # Show which document is currently loaded
+    st.divider()
+    current = st.session_state.get("current_doc")
+    if current:
+        st.caption(f"📄 Loaded: **{current}**")
+    else:
+        st.caption("No document loaded yet")
+
+    # Let the user clear everything from the UI
+    if st.button("Clear all documents"):
+        clear_store()
+        st.session_state["current_doc"] = None
+        st.success("Cleared. Upload a new document to begin.")
 
 
 # ---------- Main area: ask ----------
@@ -50,11 +64,9 @@ if question:
         answer = generate_answer(question, relevant_chunks)
         log_interaction(question, answer, relevant_chunks)
 
-    # Show the answer in a highlighted box
     st.subheader("Answer")
     st.info(answer)
 
-    # Show the source chunks used
     st.subheader("Sources used")
     for i, chunk in enumerate(relevant_chunks):
         with st.expander(f"Source chunk {i + 1}"):

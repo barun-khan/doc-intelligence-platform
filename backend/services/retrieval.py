@@ -22,6 +22,14 @@ def store_chunks(chunks: list[str]) -> int:
     )
     return len(chunks)
 
+def clear_store():
+    """Delete all stored chunks so a new document starts fresh."""
+    global _collection
+    # Get all existing IDs and delete them explicitly
+    existing = _collection.get()
+    if existing["ids"]:
+        _collection.delete(ids=existing["ids"])
+
 def search(question: str, top_k: int = 10) -> list[str]:
     """Find the chunks whose meaning is closest to the question"""
     question_vector = embed_text(question)
